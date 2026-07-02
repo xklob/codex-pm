@@ -20,6 +20,18 @@ direction.
 The preferred workflow is to run `codex-pm` in a second terminal while the user
 works in a separate terminal running the Codex CLI.
 
+The intended steady-state workflow is one command, not constant manual
+operation:
+
+```sh
+./codex-pm start --repo /path/to/project
+```
+
+After that, continue working in the normal Codex CLI. The additional
+`codex-pm` commands exist for setup, tests, manual correction, automation, and
+recovery; they are not intended to be a command-by-command project-management
+chore during normal work.
+
 Ideally, `codex-pm` observes or hooks into the existing Codex CLI session so it
 can review commands, user inputs, and Codex responses automatically. If direct
 session integration is not available, `codex-pm` may provide a proxy workflow
@@ -103,3 +115,20 @@ This repository currently describes the intended direction for `codex-pm`. The
 initial implementation should start with the smallest useful loop: persistent
 project goals, a second-terminal status view, repository and git change
 detection, and advisory checks against the user's active goals.
+
+## Development commands
+
+The current implementation uses Python 3 standard-library code and can run from
+the repository checkout.
+
+- `./codex-pm start --repo .`: start the sidecar loop for this repository.
+- `./codex-pm start --repo . --once`: run one sidecar refresh and exit.
+- `./codex-pm init --repo .`: initialize durable local state.
+- `./codex-pm status --repo .`: print the current project status once.
+- `python3 -m unittest discover`: run all tests.
+- `python3 -m unittest discover tests/unit`: run unit tests.
+- `python3 -m unittest discover tests/integration`: run integration tests.
+- `python3 -m unittest discover tests/e2e`: run e2e tests.
+- `git diff --check`: catch whitespace and patch formatting issues.
+- `rg --files`: confirm expected files are present.
+- `git status --short`: review modified and untracked files.

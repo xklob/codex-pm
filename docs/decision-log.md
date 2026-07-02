@@ -23,6 +23,10 @@ This log records product and implementation decisions for `codex-pm`.
   `~/.codex/sessions` with `session_meta`, `turn_context`, and `response_item`
   records. The observer will filter sessions by repository `cwd` and tail those
   files while leaving proxy and manual ingest as fallbacks.
+- Clarified that the desired user experience is not command-heavy. After
+  initial setup, the user should normally start one sidecar process, point it at
+  a repository, and keep working in Codex. The broader CLI surface is for setup,
+  tests, manual correction, automation, and recovery, not routine operation.
 - Planned tests across three layers: focused unit tests for state/advisory/diff
   logic, integration tests for CLI commands and polling behavior, and e2e tests
   that run the installed CLI against temporary git repositories.

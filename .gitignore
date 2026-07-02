@@ -1,0 +1,3 @@
+.codex-pm/
+__pycache__/
+*.py[cod]

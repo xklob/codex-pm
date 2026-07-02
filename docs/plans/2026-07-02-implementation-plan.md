@@ -6,6 +6,12 @@ Implement the initial `codex-pm` product described in `README.md` as a usable
 Python CLI that can run beside a Codex CLI session and maintain project-level
 context.
 
+The primary user experience is intentionally not command-heavy. After initial
+setup, the user should normally run one sidecar command, point it at the target
+repository, and then continue working in the normal Codex CLI. Additional
+commands are optional controls for setup, tests, manual corrections, automation,
+and recovery.
+
 ## Requirements derived from README.md
 
 - Preserve the normal Codex CLI workflow when possible.
@@ -63,11 +69,11 @@ context.
 
 ## Codex observation strategy
 
-- Primary mode: `codex-pm watch --observe-codex` discovers Codex JSONL sessions
-  under `$CODEX_HOME/sessions` or `~/.codex/sessions`, selects sessions whose
-  `session_meta.cwd` or `turn_context.cwd` matches the target repository, tails
-  new records, and ingests relevant user, assistant, tool-call, and tool-output
-  activity.
+- Functional observer mode, planned after the scaffold: `codex-pm watch
+  --observe-codex` discovers Codex JSONL sessions under `$CODEX_HOME/sessions`
+  or `~/.codex/sessions`, selects sessions whose `session_meta.cwd` or
+  `turn_context.cwd` matches the target repository, tails new records, and
+  ingests relevant user, assistant, tool-call, and tool-output activity.
 - Direct session observation is read-only. It must not modify Codex session
   files, require hooks, or change how the user invokes `codex`.
 - In primary sidecar mode, interrupt-level advisories are surfaced immediately
@@ -75,19 +81,28 @@ context.
   concise reasons and timestamps. Because read-only observation cannot stop the
   active Codex CLI process, the acceptance target is timely, visible
   interruption rather than process blocking.
-- Fallback modes: `codex-pm ingest` records externally supplied prompts,
-  responses, commands, and notes; `codex-pm proxy` runs a configured command
-  after advisory checks and records both sides of the interaction.
+- Current fallback mode: `codex-pm ingest` records externally supplied prompts,
+  responses, commands, and notes. Planned fallback proxy mode will run a
+  configured command after advisory checks and record both sides of the
+  interaction.
 - Observer tests use synthetic JSONL session files so they are deterministic and
   do not depend on private local Codex history.
 
 ## CLI surface
 
-- `codex-pm init`: initialize `.codex-pm/state.json` for a repository.
+- Primary steady-state command:
+  - `codex-pm start --repo <path>`: initialize state if needed, start the live
+    second-terminal view, detect repository/git activity, update project memory,
+    and surface advisories automatically. Codex session observation is planned
+    for the observer milestone after the scaffold.
+- Setup and manual-control commands:
+  - `codex-pm init`: initialize `.codex-pm/state.json` for a repository.
 - `codex-pm status`: render the current project-management state once.
-- `codex-pm watch`: run the second-terminal live view with polling.
-- `codex-pm observe`: ingest new events from existing Codex session JSONL files
-  once, useful for testing and manual refreshes.
+- `codex-pm watch`: explicit name for the live sidecar loop; `start` is the
+  user-facing default wrapper.
+- `codex-pm observe`: scaffolded as a planned command in milestone 1; in the
+  observer milestone it will ingest new events from existing Codex session JSONL
+  files once, useful for testing and manual refreshes.
 - `codex-pm project purpose [set]`: show inferred repository purpose or set an
   explicit durable purpose override.
 - `codex-pm goal add|list|set-active|complete|block`: manage durable goals.
@@ -101,8 +116,14 @@ context.
 - `codex-pm ingest`: record a user prompt, Codex response, command, or note
   from an external workflow.
 - `codex-pm advise`: run advisory checks for proposed work.
-- `codex-pm proxy`: pass a prompt to a configured command, record both sides,
+- `codex-pm proxy`: scaffolded as a planned command in milestone 1; in the proxy
+  milestone it will pass a prompt to a configured command, record both sides,
   and require explicit continuation for interrupt-level warnings before running.
+
+Routine use should not require repeatedly running the setup and manual-control
+commands. The live sidecar should infer and update state from observed Codex
+activity, repository changes, git activity, and existing project files wherever
+possible.
 
 ## Test plan
 
@@ -152,15 +173,17 @@ context.
 ## Milestones
 
 1. Scaffold package, CLI, state store, ignore rules, exact command docs in
-   `README.md` and `AGENTS.md`, and baseline tests.
+   `README.md` and `AGENTS.md`, primary `start`/`watch` command shape, and
+   baseline tests.
 2. Add project and git snapshot detection with `.codex-pm/` self-noise
    exclusion.
 3. Add goal/task/decision/risk/constraint/question commands, including planned
    work states, task-to-goal links, and status rendering.
 4. Add advisory checks for prompt and activity review, including
    interrupt-level pre-run gating.
-5. Add Codex session observer for the primary sidecar workflow.
-6. Add watch loop and proxy/ingest fallback workflows.
+5. Replace `observe` placeholder with Codex session observer functionality for
+   the primary sidecar workflow.
+6. Add proxy functionality and complete ingest fallback workflows.
 7. Add a background-analysis extension point that can run deterministic local
    analyzers without blocking the watch loop.
 8. Expand integration and long-running e2e coverage.
