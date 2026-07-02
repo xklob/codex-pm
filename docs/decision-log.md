@@ -27,6 +27,18 @@ This log records product and implementation decisions for `codex-pm`.
   initial setup, the user should normally start one sidecar process, point it at
   a repository, and keep working in Codex. The broader CLI surface is for setup,
   tests, manual correction, automation, and recovery, not routine operation.
+- After the initial scaffold, selected the Codex session observer as the next
+  implementation slice. This closes the biggest gap in the primary sidecar
+  workflow: automatic awareness of Codex prompts, assistant responses, tool
+  calls, and command outputs without requiring repeated manual commands.
+- Set privacy boundaries for observer implementation: scope ingestion at the
+  record's effective cwd rather than the whole session, baseline every
+  live-discovered session file at EOF by default, require explicit backfill for
+  historical imports, and store bounded observer metadata rather than full
+  session dumps. Live sidecar observation reads only bytes appended after a file
+  already has a persisted cursor; raw observed content and partial-line bytes
+  must not be stored in `transcripts`, observer metadata, activity, or advisory
+  fields.
 - Planned tests across three layers: focused unit tests for state/advisory/diff
   logic, integration tests for CLI commands and polling behavior, and e2e tests
   that run the installed CLI against temporary git repositories.

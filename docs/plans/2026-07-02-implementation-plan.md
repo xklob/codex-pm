@@ -69,18 +69,22 @@ and recovery.
 
 ## Codex observation strategy
 
-- Functional observer mode, planned after the scaffold: `codex-pm watch
-  --observe-codex` discovers Codex JSONL sessions under `$CODEX_HOME/sessions`
-  or `~/.codex/sessions`, selects sessions whose `session_meta.cwd` or
-  `turn_context.cwd` matches the target repository, tails new records, and
-  ingests relevant user, assistant, tool-call, and tool-output activity.
+- Functional observer mode, planned after the scaffold, is on by default for
+  `codex-pm start` and `codex-pm watch`. It discovers Codex JSONL sessions under
+  `$CODEX_HOME/sessions` or `~/.codex/sessions`, applies record-level cwd
+  filtering to the target repository, tails new records, and ingests relevant
+  user, assistant, tool-call, shell-command, and tool-output activity. Use
+  `--no-observe-codex` to disable observation when needed. The detailed
+  observer privacy, offset, backfill, and CLI semantics are defined by
+  `docs/plans/2026-07-02-observer-plan.md`.
 - Direct session observation is read-only. It must not modify Codex session
   files, require hooks, or change how the user invokes `codex`.
 - In primary sidecar mode, interrupt-level advisories are surfaced immediately
   in the second-terminal status view as prominent "Are you sure?" warnings with
   concise reasons and timestamps. Because read-only observation cannot stop the
   active Codex CLI process, the acceptance target is timely, visible
-  interruption rather than process blocking.
+  interruption rather than process blocking. True pre-run blocking belongs to
+  the proxy or hook integration path.
 - Current fallback mode: `codex-pm ingest` records externally supplied prompts,
   responses, commands, and notes. Planned fallback proxy mode will run a
   configured command after advisory checks and record both sides of the
@@ -102,7 +106,9 @@ and recovery.
   user-facing default wrapper.
 - `codex-pm observe`: scaffolded as a planned command in milestone 1; in the
   observer milestone it will ingest new events from existing Codex session JSONL
-  files once, useful for testing and manual refreshes.
+  files once, useful for testing and manual refreshes. Default observation is
+  privacy-safe and starts existing files at EOF unless explicit backfill flags
+  are provided.
 - `codex-pm project purpose [set]`: show inferred repository purpose or set an
   explicit durable purpose override.
 - `codex-pm goal add|list|set-active|complete|block`: manage durable goals.

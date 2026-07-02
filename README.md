@@ -69,9 +69,11 @@ The second-terminal UI should provide a live view of project state, including:
 Most suggestions should be advisory, but `codex-pm` should interrupt when it
 believes the user is about to begin implementation on a poor route, a detour, an
 unnecessary tangent, otherwise unwise work, or when it sees a materially better
-alternative to the user's proposed approach. Those interruptions should be brief
-and direct, for example: "Are you sure? I think this is not the best way to go
-because <x, y, and z>."
+alternative to the user's proposed approach. In read-only sidecar mode, those
+interruptions are prominent visible warnings rather than process-blocking stops.
+True pre-run blocking requires a proxy or hook integration. Interruptions should
+be brief and direct, for example: "Are you sure? I think this is not the best
+way to go because <x, y, and z>."
 
 ## Project Awareness
 
@@ -103,7 +105,8 @@ getting in the way of the active Codex session.
 - Keep project goals visible and actionable.
 - Interrupt before implementation when work appears to be a poor route, detour,
   unnecessary tangent, otherwise unwise, or when a materially better alternative
-  is available, and explain why concisely.
+  is available, and explain why concisely. Read-only observation can only surface
+  visible warnings; proxy or hook integration is needed to block execution.
 - Make project memory durable across sessions.
 - Detect changes automatically rather than relying only on manual updates.
 - Help the user avoid work that conflicts with their own stated goals.
