@@ -7,21 +7,24 @@ high-level context that is easy to lose during iterative development: the
 repository's purpose, major goals, planned work, active tasks, in-progress
 changes, recent decisions, and open risks.
 
-The goal is for `codex-pm` to act like a second brain and a soft guardrail while
-working with Codex. Before or during Codex work, the user can run prompts,
-intentions, or task ideas by `codex-pm`. It should warn when proposed work
-appears to conflict with stated goals, duplicate existing work, expand scope
-unnecessarily, or move the project in a counterproductive direction.
+The goal is for `codex-pm` to act like a second brain and a guardrail while
+working with Codex. The user should not need to switch context to consult
+`codex-pm`; it should automatically analyze and review every command and input
+the user gives to Codex, as well as the output Codex gives back. It should warn
+when proposed work appears to conflict with stated goals, duplicate existing
+work, expand scope unnecessarily, or move the project in a counterproductive
+direction.
 
 ## Intended Workflow
 
 The preferred workflow is to run `codex-pm` in a second terminal while the user
 works in a separate terminal running the Codex CLI.
 
-Ideally, `codex-pm` observes or hooks into the existing Codex CLI session. If
-direct session integration is not available, `codex-pm` may provide a proxy
-workflow where prompts pass through it before being sent to Codex. Proxy mode is
-a fallback because the primary experience should preserve the normal Codex CLI
+Ideally, `codex-pm` observes or hooks into the existing Codex CLI session so it
+can review commands, user inputs, and Codex responses automatically. If direct
+session integration is not available, `codex-pm` may provide a proxy workflow
+where prompts pass through it before being sent to Codex. Proxy mode is a
+fallback because the primary experience should preserve the normal Codex CLI
 workflow while adding project-level awareness beside it.
 
 ## What It Tracks
@@ -51,9 +54,12 @@ The second-terminal UI should provide a live view of project state, including:
 - recent file and git changes
 - occasional colored suggestions, warnings, or notes
 
-Suggestions should be advisory by default. `codex-pm` should check with the user
-before blocking or redirecting work unless the project has been configured with
-stricter guardrails.
+Most suggestions should be advisory, but `codex-pm` should interrupt when it
+believes the user is about to begin implementation on a poor route, a detour, an
+unnecessary tangent, otherwise unwise work, or when it sees a materially better
+alternative to the user's proposed approach. Those interruptions should be brief
+and direct, for example: "Are you sure? I think this is not the best way to go
+because <x, y, and z>."
 
 ## Project Awareness
 
@@ -83,7 +89,9 @@ getting in the way of the active Codex session.
 
 - Preserve the user's normal Codex CLI workflow whenever possible.
 - Keep project goals visible and actionable.
-- Prefer soft warnings and useful context over heavy-handed blocking.
+- Interrupt before implementation when work appears to be a poor route, detour,
+  unnecessary tangent, otherwise unwise, or when a materially better alternative
+  is available, and explain why concisely.
 - Make project memory durable across sessions.
 - Detect changes automatically rather than relying only on manual updates.
 - Help the user avoid work that conflicts with their own stated goals.
