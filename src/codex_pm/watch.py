@@ -4,17 +4,30 @@ import time
 from typing import Any
 
 from . import git
+from . import observer
 from . import project
 from . import render
 from . import state as state_mod
 
 
-def run_once(root, color: bool = False) -> str:
+def run_once(
+    root,
+    color: bool = False,
+    observe_codex: bool = True,
+    sessions_dir: str | None = None,
+) -> str:
     if not state_mod.state_path(root).exists():
         state_mod.ensure_initialized(root)
     with state_mod.state_lock(root):
         state = state_mod.load_state(root)
         changed = refresh_activity(root, state)
+        observer_changed = observer.observe_once(
+            root,
+            state,
+            sessions_dir=sessions_dir,
+            enabled=observe_codex,
+        )
+        changed = changed or observer_changed
         if changed:
             state_mod._save_state_unlocked(state_mod.state_path(root), state)
     return render.render_status(state, color=color)
@@ -25,10 +38,17 @@ def run_loop(
     interval: float = 2.0,
     color: bool = False,
     iterations: int | None = None,
+    observe_codex: bool = True,
+    sessions_dir: str | None = None,
 ) -> None:
     count = 0
     while True:
-        output = run_once(root, color=color)
+        output = run_once(
+            root,
+            color=color,
+            observe_codex=observe_codex,
+            sessions_dir=sessions_dir,
+        )
         print("\033[2J\033[H", end="")
         print(output, end="")
         count += 1

@@ -7,6 +7,7 @@ from typing import Any
 
 from . import __version__
 from . import advisory
+from . import observer
 from . import render
 from . import state as state_mod
 from . import watch
@@ -46,6 +47,8 @@ def build_parser() -> argparse.ArgumentParser:
     start.add_argument("--interval", type=float, default=2.0, help="poll interval in seconds")
     start.add_argument("--once", action="store_true", help="run one sidecar refresh and exit")
     start.add_argument("--color", action="store_true", help="force ANSI color")
+    start.add_argument("--sessions-dir", help="Codex sessions directory")
+    start.add_argument("--no-observe-codex", action="store_true", help="disable Codex session observation")
     start.set_defaults(func=cmd_start)
 
     status = sub.add_parser("status", help="render current project status")
@@ -56,6 +59,8 @@ def build_parser() -> argparse.ArgumentParser:
     watch_cmd.add_argument("--interval", type=float, default=2.0, help="poll interval in seconds")
     watch_cmd.add_argument("--once", action="store_true", help="run one refresh and exit")
     watch_cmd.add_argument("--color", action="store_true", help="force ANSI color")
+    watch_cmd.add_argument("--sessions-dir", help="Codex sessions directory")
+    watch_cmd.add_argument("--no-observe-codex", action="store_true", help="disable Codex session observation")
     watch_cmd.set_defaults(func=cmd_watch)
 
     project = sub.add_parser("project", help="manage project metadata")
@@ -137,10 +142,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     observe = sub.add_parser(
         "observe",
-        help="ingest Codex session activity (planned)",
-        description="ingest Codex session activity (planned for the next implementation slice)",
+        help="ingest Codex session activity",
+        description="ingest Codex session activity",
     )
     observe.add_argument("--sessions-dir", help="Codex sessions directory")
+    observe.add_argument("--from-start", action="store_true", help="explicitly backfill from byte 0")
+    observe.add_argument("--since", help="RFC 3339 timestamp for explicit backfill")
     observe.set_defaults(func=cmd_observe)
 
     advise = sub.add_parser("advise", help="run advisory checks for text")
@@ -228,10 +235,25 @@ def run_sidecar(root: Path, args: argparse.Namespace) -> int:
     state = state_mod.ensure_initialized(root)
     state_mod.ensure_gitignore(root)
     print(watch.start_summary(state))
+    observe_codex = not getattr(args, "no_observe_codex", False)
     if args.once:
-        print(watch.run_once(root, color=args.color), end="")
+        print(
+            watch.run_once(
+                root,
+                color=args.color,
+                observe_codex=observe_codex,
+                sessions_dir=getattr(args, "sessions_dir", None),
+            ),
+            end="",
+        )
         return 0
-    watch.run_loop(root, interval=args.interval, color=args.color)
+    watch.run_loop(
+        root,
+        interval=args.interval,
+        color=args.color,
+        observe_codex=observe_codex,
+        sessions_dir=getattr(args, "sessions_dir", None),
+    )
     return 0
 
 
@@ -447,11 +469,22 @@ def cmd_advise(root: Path, args: argparse.Namespace) -> int:
 
 
 def cmd_observe(root: Path, args: argparse.Namespace) -> int:
-    print(
-        "Codex session observation is planned for the next implementation slice. "
-        "Use `start` for the current sidecar loop."
-    )
-    return 2
+    if args.since and observer.parse_rfc3339(args.since) is None:
+        raise ValueError("--since must be an RFC 3339 timestamp with timezone")
+
+    def apply(state: dict[str, Any]) -> bool:
+        return observer.observe_once(
+            root,
+            state,
+            sessions_dir=args.sessions_dir,
+            enabled=True,
+            from_start=args.from_start,
+            since=args.since,
+        )
+
+    changed = mutate(root, apply)
+    print("Observed Codex sessions." if changed else "No new Codex session activity.")
+    return 0
 
 
 def cmd_proxy(root: Path, args: argparse.Namespace) -> int:

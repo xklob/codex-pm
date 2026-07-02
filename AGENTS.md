@@ -22,6 +22,14 @@ Current commands:
 
 - `./codex-pm start --repo .`: start the sidecar loop for this repository.
 - `./codex-pm start --repo . --once`: run one sidecar refresh and exit.
+- `./codex-pm start --repo . --no-observe-codex`: run the sidecar without
+  Codex session observation.
+- `./codex-pm start --repo . --sessions-dir /path/to/sessions`: use an
+  alternate Codex sessions directory for observation.
+- `./codex-pm observe --repo . --sessions-dir /path/to/sessions`: run one
+  privacy-safe observer pass.
+- `./codex-pm observe --repo . --sessions-dir /path/to/sessions --from-start`:
+  explicitly backfill a sessions directory from byte 0.
 - `./codex-pm init --repo .`: initialize durable local state.
 - `./codex-pm status --repo .`: print the current project status once.
 - `python3 -m unittest discover`: run all tests.
